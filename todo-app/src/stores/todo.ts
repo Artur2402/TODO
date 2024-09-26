@@ -6,18 +6,15 @@ type Todo = { id: string; text: string; isCompleted: boolean }
 
 export const useTodoStore = defineStore('counter', () => {
 	const todos: Ref<Todo[]> = ref([])
-
-	// Вычисляемые свойства для фильтрации завершенных задач (true, false)
-	const completedTodos = computed(() => {
+	const completedTodos = computed(() =>
 		todos.value.filter(todo => todo.isCompleted === true)
-	})
-	const inCompletedTodos = computed(() => {
+	)
+	const incompleteTodos = computed(() =>
 		todos.value.filter(todo => todo.isCompleted !== true)
-	})
+	)
 
 	const lsKey = '_v_todos'
 
-	// Функция для инициализации списка задач в localStorage
 	function initFromLocalStorage() {
 		const lstodos = localStorage.getItem(lsKey)
 
@@ -38,7 +35,6 @@ export const useTodoStore = defineStore('counter', () => {
 		localStorage.setItem(lsKey, JSON.stringify(todos.value))
 	}
 
-	// Функция добавления задачи
 	function addTodo(text: string) {
 		todos.value = [
 			...todos.value,
@@ -50,32 +46,52 @@ export const useTodoStore = defineStore('counter', () => {
 		]
 		updateLocalStorage()
 	}
-	// Удаление
-	function removeTodo(id: string) {
-		todos.value = todos.value.filter((todo) => todo.id !== id)
+
+	function editTodo(id: string, newText: string) {
+		todos.value = todos.value.map(todo => {
+			if (todo.id === id) {
+				return { ...todo, text: newText }
+			}
+			return todo
+		})
 		updateLocalStorage()
 	}
 
-	function toggleTodo(id:string) {
-		todos.value.forEach((todo) => {
+	function removeTodo(id: string) {
+		todos.value = todos.value.filter(todo => todo.id !== id)
+		updateLocalStorage()
+	}
+
+	function toggleTodo(id: string) {
+		todos.value.forEach(todo => {
 			if (todo.id === id) todo.isCompleted = !todo.isCompleted
 		})
 		updateLocalStorage()
 	}
 
 	function clearCompletedTodos() {
-		todos.value = todos.value.filter((todo) => todo.isCompleted === false)
+		todos.value = todos.value.filter(todo => todo.isCompleted === false)
+	}
+
+	function updateTodo(id: string, newText: string) {
+		todos.value.forEach(todo => {
+			if (todo.id === id) {
+				todo.text = newText
+			}
+		})
+		updateLocalStorage()
 	}
 
 	return {
 		todos,
 		completedTodos,
-		inCompletedTodos,
+		incompleteTodos,
 		addTodo,
 		removeTodo,
 		toggleTodo,
 		initFromLocalStorage,
 		updateLocalStorage,
-		clearCompletedTodos
+		clearCompletedTodos,
+		updateTodo
 	}
 })
